@@ -1,0 +1,9 @@
+PyMuPDF
+sentence-transformers
+plotly-express
+pandas
+scikit-learn
+hdbscan
+umap-learn
+hyperopt
+spacy
