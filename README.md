@@ -85,4 +85,3 @@ The script will generate two outputs:
 ## License
 
 This project is licensed under the MIT License.
-```
