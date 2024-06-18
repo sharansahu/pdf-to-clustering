@@ -30,14 +30,16 @@ This project provides a script for clustering sentences extracted from a documen
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
-3. Install the required dependencies:
+    OR
+
+   ```sh
+   conda create -n myenv python=3.11
+   conda activate myenv
+   ```
+
+4. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
-    ```
-
-4. Download the spaCy language model:
-    ```sh
-    python -m spacy download en_core_web_sm
     ```
 
 ## Usage
@@ -54,12 +56,13 @@ python text_clustering.py /path/to/your/document.pdf --clustering_method <cluste
 - `--pattern` (str, optional): Regex pattern for extracting text. Default is `r"(?<!UNCLASSIFIED//FOR OFFICIAL USE ONLY\n)(\d+\.\d+\.\d+\.\d+)\s(.*?)(?=\n\d+\.\d+\.\d+\.\d+\s|$)(?!\nUNCLASSIFIED//FOR OFFICIAL USE ONLY)"`.
 - `--model_name` (str, optional): Sentence embedding model name. Default is `paraphrase-MiniLM-L6-v2`.
 - `--clustering_method` (str): Clustering method to use. Choices are `dbscan`, `hdbscan`, `kmeans`, `gaussian_mixture`, `hierarchical`.
-- `--optimize` (action): Optimize clustering parameters.
+- `--optimize` (action): Optimize clustering and UMAP parameters.
 - `--eps` (float, optional): DBSCAN eps parameter.
 - `--min_samples` (int, optional): DBSCAN min_samples parameter.
 - `--min_cluster_size` (int, optional): HDBSCAN min_cluster_size parameter.
 - `--n_clusters` (int, optional): KMeans and Hierarchical n_clusters parameter.
 - `--n_components` (int, optional): Gaussian Mixture n_components parameter.
+- `--umap_n_components` (int, optional): Number of components you want to reduce to using UMAP dimensionality reduction. Default is 20
 
 ### Examples
 
