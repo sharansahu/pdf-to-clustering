@@ -41,11 +41,11 @@ def clean_sentences(matches):
         requirements.append(sentence)
     return requirements
 
-def cluster_sentences(sentence_embeddings, clustering_method, **kwargs):    
+def cluster_sentences(sentence_embeddings, clustering_method, umap_n_neighbors, umap_n_components, **kwargs):    
     if len(sentence_embeddings) == 0:
         raise ValueError("The sentence embeddings are empty. Check the text extraction and cleaning process.")
     
-    umap_model = UMAP(n_neighbors=int(kwargs['n_neighbors']), n_components=int(kwargs['n_components']), random_state=42, n_jobs=-1)
+    umap_model = UMAP(n_neighbors=umap_n_neighbors, n_components=umap_n_components, random_state=42, n_jobs=-1)
     umap_embeddings = umap_model.fit_transform(sentence_embeddings)
 
     clustering_params = {k: int(v) if isinstance(v, float) else v for k, v in kwargs.items() if k not in ['n_neighbors', 'n_components']}
@@ -205,15 +205,15 @@ def extract_labels(sentences, labels):
     
     return cluster_labels
 
-def main(data_path, pattern, model_name, clustering_method, optimize=False, **kwargs):
+def main(data_path, pattern, model_name, clustering_method, umap_n_neighbors, umap_n_components, optimize=False, **kwargs):
     matches = extract_text(data_path, pattern)
     sentences = clean_sentences(matches)
 
-    model = SentenceTransformer(model_name)
-    sentence_embeddings = model.encode(sentences)
-    
     if not sentences:
         raise ValueError("No sentences extracted. Check the text extraction and cleaning process.")
+
+    model = SentenceTransformer(model_name)
+    sentence_embeddings = model.encode(sentences)
     
     best_params = {}
     title = 'Clusters Visualization'
@@ -221,9 +221,11 @@ def main(data_path, pattern, model_name, clustering_method, optimize=False, **kw
     if optimize:
         best_params = optimize_parameters(sentence_embeddings, clustering_method)
         kwargs.update(best_params)
+        umap_n_neighbors = best_params.get('n_neighbors', umap_n_neighbors)
+        umap_n_components = best_params.get('n_components', umap_n_components)
         title += f' (Optimized Parameters: {best_params})'
     
-    labels, embeddings = cluster_sentences(sentence_embeddings, clustering_method, **kwargs)
+    labels, embeddings = cluster_sentences(sentence_embeddings, clustering_method, umap_n_neighbors, umap_n_components, **kwargs)
     cluster_labels = extract_labels(sentences, labels)
     
     df = pd.DataFrame({
@@ -251,9 +253,11 @@ if __name__ == "__main__":
     parser.add_argument('--min_cluster_size', type=int, help='HDBSCAN min_cluster_size parameter')
     parser.add_argument('--n_clusters', type=int, help='KMeans and Hierarchical n_clusters parameter')
     parser.add_argument('--n_components', type=int, help='Gaussian Mixture n_components parameter')
+    parser.add_argument('--umap_n_neighbors', type=int, default=5, help='number of neighboring points used in local approximations of manifold structure for UMAP')
+    parser.add_argument('--umap_n_components', type=int, default=20, help='Number of components you want to reduce to using UMAP')
     
     args = parser.parse_args()
     
     clustering_kwargs = {key: value for key, value in vars(args).items() if key in ['eps', 'min_samples', 'min_cluster_size', 'n_clusters', 'n_components'] and value is not None}
     
-    main(args.data_path, args.pattern, args.model_name, args.clustering_method, args.optimize, **clustering_kwargs)
+    main(args.data_path, args.pattern, args.model_name, args.clustering_method, args.optimize, args.umap_n_neighbors, args.umap_n_components, **clustering_kwargs)
