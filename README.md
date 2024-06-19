@@ -54,6 +54,8 @@ python pdf_to_clustering.py /path/to/your/document.pdf --clustering_method <clus
 
 - `data_path` (str): Path to the PDF document.
 - `--pattern` (str, optional): Regex pattern for extracting text. Default is `r"(?<!UNCLASSIFIED//FOR OFFICIAL USE ONLY\n)(\d+\.\d+\.\d+\.\d+)\s(.*?)(?=\n\d+\.\d+\.\d+\.\d+\s|$)(?!\nUNCLASSIFIED//FOR OFFICIAL USE ONLY)"`.
+- `--subpattern` (str, optional): List of regex subpatterns to remove/clean from extracted text. Default is `default=[r"(UNCLASSIFIED//FOR OFFICIAL USE ONLY\s+\d+\s+)", r"UNCLASSIFIED//FOR OFFICIAL USE ONLY"]`.
+- `--break_condition` (str, optional): Condition to break the cleaning process. Default is "Acronyms".
 - `--model_name` (str, optional): Sentence embedding model name. Default is `paraphrase-MiniLM-L6-v2`.
 - `--clustering_method` (str): Clustering method to use. Choices are `dbscan`, `hdbscan`, `kmeans`, `gaussian_mixture`, `hierarchical`.
 - `--optimize` (action): Optimize clustering and UMAP parameters.
