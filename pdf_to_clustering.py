@@ -29,26 +29,26 @@ def extract_text(data_path, pattern):
         text += page.get_text()
     return re.findall(pattern, text, re.DOTALL)
 
-def clean_sentences(matches):
+def clean_sentences(matches, subpatterns=None, break_condition=None):
     requirements = []
     for match in matches:
-        subpattern = r"(UNCLASSIFIED//FOR OFFICIAL USE ONLY\s+\d+\s+)"
-        sentence = re.sub(subpattern, "", match[1].strip())
-        subpattern = r"UNCLASSIFIED//FOR OFFICIAL USE ONLY"
-        sentence = re.sub(subpattern, "", sentence)
-        if "Acronyms" in sentence:
+        sentence = match[1].strip()
+        if subpatterns:
+            for subpattern in subpatterns:
+                sentence = re.sub(subpattern, "", sentence)
+        if break_condition and break_condition in sentence:
             break
         requirements.append(sentence)
     return requirements
 
-def cluster_sentences(sentence_embeddings, clustering_method, umap_n_neighbors, umap_n_components, **kwargs):    
+def cluster_sentences(sentence_embeddings, clustering_method, umap_n_neighbors, umap_n_components, **kwargs):
     if len(sentence_embeddings) == 0:
         raise ValueError("The sentence embeddings are empty. Check the text extraction and cleaning process.")
     
     umap_model = UMAP(n_neighbors=umap_n_neighbors, n_components=umap_n_components, random_state=42, n_jobs=-1)
     umap_embeddings = umap_model.fit_transform(sentence_embeddings)
 
-    clustering_params = {k: int(v) if isinstance(v, float) else v for k, v in kwargs.items() if k not in ['n_neighbors', 'n_components']}
+    clustering_params = {k: int(v) if isinstance(v, float) else v for k, v in kwargs.items() if k not in ['umap_n_neighbors', 'umap_n_components']}
     
     if clustering_method == 'dbscan':
         cluster = DBSCAN(**clustering_params)
@@ -205,9 +205,9 @@ def extract_labels(sentences, labels):
     
     return cluster_labels
 
-def main(data_path, pattern, model_name, clustering_method, umap_n_neighbors, umap_n_components, optimize=False, **kwargs):
+def main(data_path, pattern, model_name, clustering_method, umap_n_neighbors, umap_n_components, optimize=False, subpatterns=None, break_condition=None, **kwargs):
     matches = extract_text(data_path, pattern)
-    sentences = clean_sentences(matches)
+    sentences = clean_sentences(matches, subpatterns, break_condition)
 
     if not sentences:
         raise ValueError("No sentences extracted. Check the text extraction and cleaning process.")
@@ -243,6 +243,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Text Clustering Script")
     parser.add_argument('data_path', type=str, help='Path to the document')
     parser.add_argument('--pattern', type=str, default=r"(?<!UNCLASSIFIED//FOR OFFICIAL USE ONLY\n)(\d+\.\d+\.\d+\.\d+)\s(.*?)(?=\n\d+\.\d+\.\d+\.\d+\s|$)(?!\nUNCLASSIFIED//FOR OFFICIAL USE ONLY)", help='Regex pattern for extracting text')
+    parser.add_argument('--subpatterns', nargs='*', default=[r"(UNCLASSIFIED//FOR OFFICIAL USE ONLY\s+\d+\s+)", r"UNCLASSIFIED//FOR OFFICIAL USE ONLY"], help='List of regex subpatterns to remove/clean from extracted text')
+    parser.add_argument('--break_condition', type=str, default="Acronyms", help='Condition to break sentence extraction')
     parser.add_argument('--model_name', type=str, default='paraphrase-MiniLM-L6-v2', help='Sentence embedding model name')
     parser.add_argument('--clustering_method', type=str, choices=['dbscan', 'hdbscan', 'kmeans', 'gaussian_mixture', 'hierarchical'], required=True, help='Clustering method')
     parser.add_argument('--optimize', action='store_true', help='Optimize clustering parameters')
@@ -253,11 +255,11 @@ if __name__ == "__main__":
     parser.add_argument('--min_cluster_size', type=int, help='HDBSCAN min_cluster_size parameter')
     parser.add_argument('--n_clusters', type=int, help='KMeans and Hierarchical n_clusters parameter')
     parser.add_argument('--n_components', type=int, help='Gaussian Mixture n_components parameter')
-    parser.add_argument('--umap_n_neighbors', type=int, default=5, help='number of neighboring points used in local approximations of manifold structure for UMAP')
-    parser.add_argument('--umap_n_components', type=int, default=20, help='Number of components you want to reduce to using UMAP')
+    parser.add_argument('--umap_n_neighbors', type=int, default=15, help='Number of neighboring points used in local approximations of manifold structure for UMAP.')
+    parser.add_argument('--umap_n_components', type=int, default=30, help='Number of components you want to reduce to using UMAP.')
     
     args = parser.parse_args()
     
     clustering_kwargs = {key: value for key, value in vars(args).items() if key in ['eps', 'min_samples', 'min_cluster_size', 'n_clusters', 'n_components'] and value is not None}
     
-    main(args.data_path, args.pattern, args.model_name, args.clustering_method, args.optimize, args.umap_n_neighbors, args.umap_n_components, **clustering_kwargs)
+    main(args.data_path, args.pattern, args.model_name, args.clustering_method, args.umap_n_neighbors, args.umap_n_components, args.optimize, args.subpatterns, args.break_condition, **clustering_kwargs)
