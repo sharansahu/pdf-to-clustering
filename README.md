@@ -20,8 +20,8 @@ This project provides a script for clustering sentences extracted from a documen
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/text-clustering.git
-    cd text-clustering
+    git clone https://github.com/sharansahu/pdf-to-clustering
+    cd pdf-to-clustering
     ```
 
 2. Create a virtual environment and activate it:
@@ -47,7 +47,7 @@ This project provides a script for clustering sentences extracted from a documen
 To use the script, run the following command:
 
 ```sh
-python text_clustering.py /path/to/your/document.pdf --clustering_method <clustering_method> [options]
+python pdf_to_clustering.py /path/to/your/document.pdf --clustering_method <clustering_method> [options]
 ```
 
 ### Arguments
@@ -69,12 +69,12 @@ python text_clustering.py /path/to/your/document.pdf --clustering_method <cluste
 
 #### Basic Usage
 ```sh
-python text_clustering.py /path/to/your/document.pdf --clustering_method kmeans --n_clusters 5
+python pdf_to_clustering.py /path/to/your/document.pdf --clustering_method kmeans --n_clusters 5
 ```
 
 #### Optimizing Clustering Parameters
 ```sh
-python text_clustering.py /path/to/your/document.pdf --clustering_method hdbscan --optimize
+python pdf_to_clustering.py /path/to/your/document.pdf --clustering_method hdbscan --optimize
 ```
 
 ## Output
