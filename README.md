@@ -62,8 +62,8 @@ python text_clustering.py /path/to/your/document.pdf --clustering_method <cluste
 - `--min_cluster_size` (int, optional): HDBSCAN min_cluster_size parameter.
 - `--n_clusters` (int, optional): KMeans and Hierarchical n_clusters parameter.
 - `--n_components` (int, optional): Gaussian Mixture n_components parameter.
-- `--umap_n_neighbors` (int, optional): Number of neighboring points used in local approximations of manifold structure for UMAP.
-- `--umap_n_components` (int, optional): Number of components you want to reduce to using UMAP dimensionality reduction. Default is 20.
+- `--umap_n_neighbors` (int, optional): Number of neighboring points used in local approximations of manifold structure for UMAP. Default is 15.
+- `--umap_n_components` (int, optional): Number of components you want to reduce to using UMAP dimensionality reduction. Default is 30.
 
 ### Examples
 
