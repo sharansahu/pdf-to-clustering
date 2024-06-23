@@ -199,9 +199,9 @@ def extract_labels(sentences, labels):
         top_dobj = dobj_counts.most_common(1)[0][0] if dobj_counts else 'unknown'
         top_nouns = [noun for noun, count in noun_counts.most_common(2)]
         
-        cluster_labels[label] = f"{top_verb}-{top_dobj}-{'-'.join(top_nouns)}"
-        if '@' in cluster_labels[label]:
-            cluster_labels[label] = cluster_labels[label].replace("@", "")
+        cluster_label = f"{top_verb}-{top_dobj}-{'-'.join(top_nouns)}"
+        cluster_label = cluster_label.replace('@', '')
+        cluster_labels[label] = cluster_label
     
     return cluster_labels
 
@@ -227,11 +227,16 @@ def main(data_path, pattern, model_name, clustering_method, umap_n_neighbors, um
     
     labels, embeddings = cluster_sentences(sentence_embeddings, clustering_method, umap_n_neighbors, umap_n_components, **kwargs)
     cluster_labels = extract_labels(sentences, labels)
+
+    def escape_excel_formula(text):
+        if text.startswith('=') or text.startswith('+') or text.startswith('-'):
+            return f"'{text}"
+        return text
     
     df = pd.DataFrame({
         'Sentence': sentences,
         'Cluster': labels,
-        'Cluster Label': [cluster_labels[label] if label != -1 else 'Noise' for label in labels]
+        'Cluster Label': [escape_excel_formula(cluster_labels[label] if label != -1 else 'Noise') for label in labels]
     })
     df.to_excel("clustered_sentences.xlsx", index=False)
     
